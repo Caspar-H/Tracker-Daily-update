@@ -20,6 +20,7 @@ from PyQt5.QtGui import *
 # b. 用Pandas的read_excel打开，直接读取所有的内容，然后转换成字典格式（.to_dict()）， 然后用pop() 把不需要的行剔除出去。这时的dict是以列为单位的。
 # c. 用Pandas的read_excel打开并在打开时，使用df.loc选择需要的行列，直接生成dataframe。
 # 最终选择了第三种，df.loc的使用大大提升了效率和逻辑清晰度。
+# 最后输出过滤过的原始数据dataframe
 def readTracker(filename):
 		
 	import pandas as pd
@@ -42,6 +43,10 @@ def readTracker(filename):
 	return tracker;
 
 # udpate statistic in tracker, including daily report and weekly report.
+# 根据条件和输入的基础数据，进行统计。
+# 这里维护了一张统计时所需要依据的条件的表格。表格内包括：原始数据的表头与统计数据表头的对应关系，以及是以何种条件进行筛选
+# 此段代码主要通过df.loc, len(), pd.notnull() 进行统计
+# 最后输出一张包括含统计数据的dataframe
 def getStatistic(filename,mappingFile,tracker):
 	
 	import pandas as pd
@@ -67,7 +72,8 @@ def getStatistic(filename,mappingFile,tracker):
 	
 	return mappingTable;
 
-
+# 将统计好的数据，填入到表格之后。主要使用openpyxl。缺点是速度有些慢，需要一个一个的填。目前还没有想到好的解决办法
+# 最后存储填好的表格。
 def updateTracker(filename, mappingTable,mappingFile):
 	
 	import openpyxl
@@ -121,7 +127,7 @@ def updateTracker(filename, mappingTable,mappingFile):
 		
 	wb.save(filename)
 
-
+# 第一段代码的主函数，通过键入日期来确定打开的文件名
 def trackerUpdate ():
 	
 	filename = 'Master Site List '+ foo.form_widget.dateTypeIn.text()+'.xlsx'
@@ -135,6 +141,9 @@ def trackerUpdate ():
 # 2. To prepare and wash the data for Power BI purpose
 
 # wash the list
+# 此处分为三步，1）将原始表格进行再一步的过滤，因为在power BI内不需要所有的列，只保留需要的列。 
+#              2）根据规则，增加新的一列，统计出各个站点当前所处的阶段。使用了df.apply来实现，apply后边的加的函数，以列为单位
+#              3）由于需要做柱状图，需要统一legend， 将之前不同milestone不同的说明归一化。使用df.loc 进行dataframe的重新赋值
 
 def washTracker(tracker,mappingFile):
 	
@@ -156,7 +165,8 @@ def washTracker(tracker,mappingFile):
 		
 	
 	return trackerBI;
-	
+
+# 配合df.apply使用的函数
 def siteStatusPowerBI(row):
 	
 	import pandas as pd
@@ -166,7 +176,8 @@ def siteStatusPowerBI(row):
 	if pd.notnull(row['RFNSA STAD table locked']): return '3 - STAD Table Locked'
 	if pd.notnull(row['RF Lock Down']): return '2 - Cluster Finalization'
 	return '1 - MSL Released'
-	
+
+# 配合df.apply使用的函数（主要用于跟新每周tracker的kml）
 def siteStatus(row):
 	
 	import pandas as pd
@@ -177,7 +188,9 @@ def siteStatus(row):
 	if pd.notnull(row['RF Lock Down']): return 'Cluster Finalization'
 	return 'MSL Released'
 	
-	
+# 第二段函数的主函数
+# 使用pd.ExcelWriter 将dataframe写入一个给定位置的excel。每天更新的时候回不断覆盖之前的内容
+# writer = pd.ExcelWriter(out_path, engine = 'xlsxwriter'), df.to_excel(writer,sheet_name = xxx, index = False), writer.save() 
 def createPowerBIFile():
 	
 	import xlsxwriter, pandas as pd
