@@ -15,6 +15,11 @@ from PyQt5.QtGui import *
 # 1. To update statistic data in the tracker for daily/weekly report purpose
 #read data from the tracker, read the sites in scope only
 
+# 尝试了三种方法把处理过的数据导入Pandas Dataframe 或者 Python Dictionary
+# a. 用openpyxl打开，通过条件判断过滤掉不需要的数据，并同时存储到相应的dict中。处理过程相对较慢，字典的key是以行为单位的，每行的Site ID。
+# b. 用Pandas的read_excel打开，直接读取所有的内容，然后转换成字典格式（.to_dict()）， 然后用pop() 把不需要的行剔除出去。这时的dict是以列为单位的。
+# c. 用Pandas的read_excel打开并在打开时，使用df.loc选择需要的行列，直接生成dataframe。
+# 最终选择了第三种，df.loc的使用大大提升了效率和逻辑清晰度。
 def readTracker(filename):
 		
 	import pandas as pd
