@@ -205,7 +205,9 @@ def createPowerBIFile():
 	trackerBI.to_excel(writer,sheet_name ='Power BI Data',index = False)
 	writer.save()
 
-	
+
+# 创建UI，提供输出输出的按钮
+# 创建主窗口，QMainWindow, 作为parent, 并创建widget, self.form_widget = FormWidget(self)
 class MyMainWindow(QMainWindow):
 		
 		def __init__(self, parent = None):
@@ -239,7 +241,8 @@ class MyMainWindow(QMainWindow):
 				#set popped up window location/title
 				self.setGeometry(300,300,250,250)
 				self.setWindowTitle('Daily Tracker Update')
-		
+				
+# 创建负责按钮的QWidget, 在里边创建QLineEdit() 提供输入, 创建按钮QPushButton并将其与对应的主函数连接，在主函数完成之后，进行提示
 class FormWidget(QWidget):
 		
 		def __init__(self,parent):
@@ -280,7 +283,7 @@ class FormWidget(QWidget):
 				
 		def clickMethod(self):
 				QMessageBox.about(self,"Result","Done")
-
+# 当程序是被单独调用的时候，运行程序
 if __name__ == '__main__' :
 
 		app = QApplication(sys.argv)
